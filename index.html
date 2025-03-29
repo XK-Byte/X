@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>简单计算器</title>
+    <title>专业科学计算器</title>
     <style>
         :root {
             --primary-color: #007AFF;
@@ -11,6 +11,16 @@
             --hover-color: #e6e6e6;
             --shadow-color: rgba(0,0,0,0.2);
             --error-color: #ff3b30;
+            --memory-color: #5856d6;
+            --history-color: #8e8e93;
+            --button-active-color: #d9d9d9;
+            --operator-active-color: #d97e00;
+            --equals-active-color: #0055cc;
+            --memory-active-color: #3e3cb5;
+            --scientific-color: #34C759;
+            --scientific-active-color: #269642;
+            --stat-color: #AF52DE;
+            --const-color: #FF2D55;
         }
 
         body {
@@ -23,21 +33,42 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            position: relative;
         }
 
         .calculator {
             width: 100%;
-            max-width: 320px;
+            max-width: 380px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f3f3f3;
             border-radius: 20px;
             box-shadow: 0 10px 25px var(--shadow-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        #history {
+            width: calc(100% - 20px);
+            height: 20px;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+            text-align: right;
+            color: var(--history-color);
+            background-color: white;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+            box-shadow: inset 0 1px 3px var(--shadow-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         #display {
             width: calc(100% - 20px);
-            height: 80px;
+            height: 60px;
             margin-bottom: 15px;
             padding: 10px;
             font-size: 32px;
@@ -57,13 +88,13 @@
 
         .buttons {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
         }
 
         button {
-            padding: 20px 0;
-            font-size: 20px;
+            padding: 15px 0;
+            font-size: 18px;
             font-weight: 500;
             border: none;
             border-radius: 10px;
@@ -73,10 +104,14 @@
             box-shadow: 0 2px 5px var(--shadow-color);
             position: relative;
             overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         button:active {
             transform: scale(0.95);
+            background-color: var(--button-active-color);
         }
 
         button:hover {
@@ -91,6 +126,10 @@
         .operator:hover {
             background-color: #e68a00;
         }
+        
+        .operator:active {
+            background-color: var(--operator-active-color);
+        }
 
         .equals {
             background-color: var(--primary-color);
@@ -100,6 +139,10 @@
         .equals:hover {
             background-color: #0066cc;
         }
+        
+        .equals:active {
+            background-color: var(--equals-active-color);
+        }
 
         .clear {
             background-color: #a5a5a5;
@@ -108,6 +151,66 @@
 
         .clear:hover {
             background-color: #8a8a8a;
+        }
+        
+        .clear:active {
+            background-color: #7a7a7a;
+        }
+
+        .memory {
+            background-color: var(--memory-color);
+            color: white;
+            font-size: 16px;
+        }
+
+        .memory:hover {
+            background-color: #4846b6;
+        }
+        
+        .memory:active {
+            background-color: var(--memory-active-color);
+        }
+
+        .scientific-btn {
+            background-color: var(--scientific-color);
+            color: white;
+            font-size: 16px;
+        }
+
+        .scientific-btn:hover {
+            background-color: #2daf4e;
+        }
+        
+        .scientific-btn:active {
+            background-color: var(--scientific-active-color);
+        }
+
+        .stat-btn {
+            background-color: var(--stat-color);
+            color: white;
+            font-size: 16px;
+        }
+
+        .stat-btn:hover {
+            background-color: #9b4bc5;
+        }
+        
+        .stat-btn:active {
+            background-color: #8a3ab4;
+        }
+
+        .const-btn {
+            background-color: var(--const-color);
+            color: white;
+            font-size: 16px;
+        }
+
+        .const-btn:hover {
+            background-color: #e61c4d;
+        }
+        
+        .const-btn:active {
+            background-color: #d50b3c;
         }
 
         .ripple {
@@ -126,253 +229,871 @@
             }
         }
 
-        @media (max-width: 400px) {
+        /* 历史记录面板样式 */
+        .history-panel {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 250px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 10;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .history-panel.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .history-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+        }
+        
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .history-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .clear-history {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .clear-history:hover {
+            background-color: rgba(0, 122, 255, 0.1);
+        }
+        
+        .history-toggle {
+            position: absolute;
+            right: 20px;
+            top: 100px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        
+        .history-toggle:active {
+            transform: scale(0.9);
+        }
+        
+        /* 内存指示器 */
+        .memory-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: var(--memory-color);
+            display: none;
+        }
+        
+        /* 统计数据显示 */
+        .stat-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 12px;
+            color: var(--stat-color);
+            display: none;
+        }
+        
+        /* 暗黑模式 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1c1c1e;
+            }
+            
             .calculator {
-                padding: 15px;
+                background-color: #2c2c2e;
+            }
+            
+            #display, #history {
+                background-color: #3a3a3c;
+                color: #ffffff;
             }
             
             button {
-                padding: 15px 0;
-                font-size: 18px;
+                background-color: #3a3a3c;
+                color: #ffffff;
+            }
+            
+            button:hover {
+                background-color: #4a4a4c;
+            }
+            
+            button:active {
+                background-color: #2a2a2c;
+            }
+            
+            .history-panel {
+                background-color: #3a3a3c;
+                color: #ffffff;
+            }
+            
+            .history-item {
+                border-bottom-color: #4a4a4c;
+            }
+            
+            .history-item:hover {
+                background-color: #4a4a4c;
+            }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 400px) {
+            .calculator {
+                padding: 15px;
+                max-width: 320px;
+            }
+            
+            .buttons {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            /* 在小屏幕上隐藏部分按钮 */
+            .const-btn, .stat-btn:nth-child(n+4) {
+                display: none;
+            }
+            
+            button {
+                padding: 12px 0;
+                font-size: 16px;
+            }
+            
+            #display {
+                height: 50px;
+                font-size: 28px;
+            }
+            
+            #history {
+                font-size: 12px;
+            }
+            
+            .history-panel {
+                width: 200px;
             }
         }
     </style>
 </head>
 <body>
+    <button class="history-toggle" onclick="calculator.toggleHistory()">≡</button>
+    
+    <div class="history-panel" id="historyPanel">
+        <div class="history-title">
+            计算历史
+            <span class="clear-history" onclick="calculator.clearHistory()">清空</span>
+        </div>
+        <div id="historyList"></div>
+    </div>
+    
     <div class="calculator">
+        <div class="memory-indicator" id="memoryIndicator">M</div>
+        <div class="stat-display" id="statIndicator">n=0</div>
+        <input type="text" id="history" readonly>
         <input type="text" id="display" readonly value="0">
         <div class="buttons">
-            <button class="clear" onclick="clearDisplay()">AC</button>
-            <button class="operator" data-operator="+/-">±</button>
-            <button class="operator" data-operator="%">%</button>
-            <button class="operator" data-operator="/">÷</button>
+            <!-- 第一行：清除和内存功能 -->
+            <button class="clear" onclick="calculator.clearAll()">AC</button>
+            <button class="memory" onclick="calculator.memoryClear()">MC</button>
+            <button class="memory" onclick="calculator.memoryRecall()">MR</button>
+            <button class="memory" onclick="calculator.memoryAdd()">M+</button>
+            <button class="memory" onclick="calculator.memorySubtract()">M-</button>
             
+            <!-- 第二行：科学计算功能 -->
+            <button class="scientific-btn" onclick="calculator.scientificFunction('sqrt')">√</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('square')">x²</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('cube')">x³</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('power')">x^y</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('inv')">1/x</button>
+            
+            <!-- 第三行：三角函数 -->
+            <button class="scientific-btn" onclick="calculator.scientificFunction('sin')">sin</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('cos')">cos</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('tan')">tan</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('asin')">sin⁻¹</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('acos')">cos⁻¹</button>
+            
+            <!-- 第四行：对数和指数 -->
+            <button class="scientific-btn" onclick="calculator.scientificFunction('log')">log</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('ln')">ln</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('exp')">e^x</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('tenpow')">10^x</button>
+            <button class="operator" data-operator="%">%</button>
+            
+            <!-- 第五行：统计功能 -->
+            <button class="stat-btn" onclick="calculator.statFunction('data')">DATA</button>
+            <button class="stat-btn" onclick="calculator.statFunction('mean')">MEAN</button>
+            <button class="stat-btn" onclick="calculator.statFunction('sum')">SUM</button>
+            <button class="stat-btn" onclick="calculator.statFunction('sdev')">SDEV</button>
+            <button class="stat-btn" onclick="calculator.clearStats()">CLR STAT</button>
+            
+            <!-- 第六行：常数 -->
+            <button class="const-btn" onclick="calculator.useConstant('pi')">π</button>
+            <button class="const-btn" onclick="calculator.useConstant('e')">e</button>
+            <button class="const-btn" onclick="calculator.useConstant('phi')">φ</button>
+            <button class="const-btn" onclick="calculator.useConstant('rand')">RAND</button>
+            <button class="operator" data-operator="+/-">±</button>
+            
+            <!-- 第七行：数字和基本运算 -->
             <button data-number="7">7</button>
             <button data-number="8">8</button>
             <button data-number="9">9</button>
+            <button class="operator" data-operator="/">÷</button>
             <button class="operator" data-operator="*">×</button>
             
+            <!-- 第八行：数字和基本运算 -->
             <button data-number="4">4</button>
             <button data-number="5">5</button>
             <button data-number="6">6</button>
             <button class="operator" data-operator="-">-</button>
+            <button class="operator" data-operator="+">+</button>
             
+            <!-- 第九行：数字和基本运算 -->
             <button data-number="1">1</button>
             <button data-number="2">2</button>
             <button data-number="3">3</button>
-            <button class="operator" data-operator="+">+</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('fact')">x!</button>
+            <button class="equals" onclick="calculator.calculate()">=</button>
             
+            <!-- 第十行：底部特殊按钮 -->
             <button data-number="0" style="grid-column: span 2;">0</button>
             <button data-number=".">.</button>
-            <button class="equals" onclick="calculate()">=</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('mod')">MOD</button>
+            <button class="scientific-btn" onclick="calculator.scientificFunction('hyp')">HYP</button>
         </div>
     </div>
 
     <script>
-        let currentValue = '0';
-        let previousValue = null;
-        let operator = null;
-        let resetDisplay = false;
-        const display = document.getElementById('display');
-
-        // 添加水波纹效果
-        document.querySelectorAll('button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                const rect = this.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const ripple = document.createElement('span');
-                ripple.classList.add('ripple');
-                ripple.style.left = `${x}px`;
-                ripple.style.top = `${y}px`;
-                
-                this.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
-            });
-        });
-
-        // 数字按钮点击事件
-        document.querySelectorAll('[data-number]').forEach(button => {
-            button.addEventListener('click', () => {
-                const number = button.getAttribute('data-number');
-                handleNumber(number);
-            });
-        });
-
-        // 运算符按钮点击事件
-        document.querySelectorAll('[data-operator]').forEach(button => {
-            button.addEventListener('click', () => {
-                const newOperator = button.getAttribute('data-operator');
-                handleOperator(newOperator);
-            });
-        });
-
-        // 键盘支持
-        document.addEventListener('keydown', (e) => {
-            if (/[0-9.]/.test(e.key)) {
-                handleNumber(e.key);
-            } else if (/[+\-*/]/.test(e.key)) {
-                handleOperator(e.key);
-            } else if (e.key === 'Enter' || e.key === '=') {
-                calculate();
-            } else if (e.key === 'Escape') {
-                clearDisplay();
-            } else if (e.key === '%') {
-                handleOperator('%');
-            } else if (e.key === 'Backspace') {
-                backspace();
-            }
-        });
-
-        function handleNumber(num) {
-            if (currentValue === 'Error') {
-                clearDisplay();
-            }
+        const calculator = {
+            currentValue: '0',
+            previousValue: null,
+            operator: null,
+            resetDisplay: false,
+            memory: 0,
+            lastOperation: '',
+            historyItems: [],
+            stats: {
+                data: [],
+                sum: 0,
+                sumSquares: 0
+            },
+            isHyp: false,
+            isRad: false,
             
-            if (resetDisplay) {
-                currentValue = '0';
-                resetDisplay = false;
-            }
+            init() {
+                this.display = document.getElementById('display'); 
+                this.history = document.getElementById('history'); 
+                this.memoryIndicator = document.getElementById('memoryIndicator');
+                this.statIndicator = document.getElementById('statIndicator');
+                this.historyPanel = document.getElementById('historyPanel');
+                
+                // 添加水波纹效果
+                document.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        const rect = this.getBoundingClientRect(); 
+                        const ripple = document.createElement('span'); 
+                        ripple.classList.add('ripple'); 
+                        ripple.style.left = `${e.clientX - rect.left}px`; 
+                        ripple.style.top = `${e.clientY - rect.top}px`; 
+                        this.appendChild(ripple); 
+                        setTimeout(() => ripple.remove(), 600);
+                    });
+                });
+ 
+                // 数字按钮点击事件
+                document.querySelectorAll('[data-number]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const number = button.getAttribute('data-number'); 
+                        this.handleNumber(number); 
+                    });
+                });
+ 
+                // 运算符按钮点击事件
+                document.querySelectorAll('[data-operator]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const newOperator = button.getAttribute('data-operator'); 
+                        this.handleOperator(newOperator); 
+                    });
+                });
+ 
+                // 键盘支持
+                document.addEventListener('keydown', (e) => {
+                    if (e.key >= '0' && e.key <= '9') {
+                        this.handleNumber(e.key); 
+                    } else if (e.key === '.') {
+                        this.handleNumber('.'); 
+                    } else if (['+', '-', '*', '/'].includes(e.key)) {
+                        this.handleOperator(e.key); 
+                    } else if (e.key === 'Enter' || e.key === '=') {
+                        this.calculate(); 
+                    } else if (e.key === 'Escape') {
+                        this.clearAll(); 
+                    } else if (e.key === '%') {
+                        this.handleOperator('%'); 
+                    } else if (e.key === 'Backspace') {
+                        this.backspace(); 
+                    } else if (e.key === 'm' && e.ctrlKey) {
+                        this.memoryAdd(); 
+                    } else if (e.key === 'r' && e.ctrlKey) {
+                        this.memoryRecall(); 
+                    } else if (e.key === 'h' && e.ctrlKey) {
+                        this.toggleHistory();
+                    } else if (e.key === 's' && e.ctrlKey) {
+                        this.scientificFunction('sqrt');
+                    } else if (e.key === 'd' && e.ctrlKey) {
+                        this.statFunction('data');
+                    }
+                });
+                
+                // 加载历史记录
+                this.loadHistory();
+                
+                // 检查暗黑模式
+                this.checkDarkMode();
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                    this.checkDarkMode();
+                });
+            },
             
-            // 处理小数点
-            if (num === '.') {
-                if (!currentValue.includes('.')) {
-                    currentValue += '.';
-                }
-            } else {
-                if (currentValue === '0') {
-                    currentValue = num;
+            checkDarkMode() {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.body.classList.add('dark-mode');
                 } else {
-                    currentValue += num;
+                    document.body.classList.remove('dark-mode');
                 }
-            }
+            },
             
-            updateDisplay();
-        }
-
-        function handleOperator(newOperator) {
-            if (currentValue === 'Error') return;
+            toggleHistory() {
+                this.historyPanel.classList.toggle('show');
+            },
             
-            if (newOperator === '+/-') {
-                currentValue = (parseFloat(currentValue) * -1).toString();
-                updateDisplay();
-                return;
-            }
+            addHistory(record) {
+                this.historyItems.unshift(record);
+                if (this.historyItems.length > 20) {
+                    this.historyItems.pop();
+                }
+                this.saveHistory();
+                this.renderHistory();
+            },
             
-            if (newOperator === '%') {
-                currentValue = (parseFloat(currentValue) / 100).toString();
-                updateDisplay();
-                return;
-            }
+            renderHistory() {
+                const list = document.getElementById('historyList');
+                list.innerHTML = '';
+                
+                this.historyItems.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.textContent = item;
+                    div.onclick = () => this.useHistory(item);
+                    list.appendChild(div);
+                });
+            },
             
-            // 如果已经有运算符且没有重置显示，先计算当前表达式
-            if (operator && !resetDisplay) {
-                calculate(false);
-            }
+            useHistory(item) {
+                const parts = item.split(' = ');
+                if (parts.length === 2) {
+                    this.currentValue = parts[1];
+                    this.updateDisplay();
+                    this.history.value = item;
+                    this.toggleHistory();
+                }
+            },
             
-            previousValue = currentValue;
-            operator = newOperator;
-            resetDisplay = true;
-        }
-
-        function calculate(update = true) {
-            if (!operator || currentValue === 'Error') return;
+            clearHistory() {
+                if (confirm('确定要清空所有历史记录吗？')) {
+                    this.historyItems = [];
+                    this.renderHistory();
+                    localStorage.removeItem('calculatorHistory');
+                }
+            },
             
-            const prev = parseFloat(previousValue);
-            const current = parseFloat(currentValue);
-            let result;
+            saveHistory() {
+                localStorage.setItem('calculatorHistory', JSON.stringify(this.historyItems));
+            },
             
-            try {
-                switch(operator) {
-                    case '+':
-                        result = prev + current;
-                        break;
-                    case '-':
-                        result = prev - current;
-                        break;
-                    case '*':
-                        result = prev * current;
-                        break;
-                    case '/':
-                        if (current === 0) throw new Error('Division by zero');
-                        result = prev / current;
-                        break;
-                    default:
-                        return;
+            loadHistory() {
+                const saved = localStorage.getItem('calculatorHistory');
+                if (saved) {
+                    this.historyItems = JSON.parse(saved);
+                    this.renderHistory();
+                }
+            },
+            
+            handleNumber(num) {
+                if (this.currentValue === 'Error') {
+                    this.clearAll(); 
                 }
                 
-                // 处理浮点数精度问题
-                if (Number.isInteger(result)) {
-                    currentValue = result.toString();
-                } else {
-                    currentValue = parseFloat(result.toFixed(10)).toString();
+                if (this.resetDisplay) {
+                    this.currentValue = '0';
+                    this.resetDisplay = false;
                 }
                 
-                if (update) {
-                    operator = null;
-                    previousValue = null;
-                }
-                resetDisplay = true;
-                
-                display.classList.remove('error');
-            } catch (error) {
-                currentValue = 'Error';
-                operator = null;
-                previousValue = null;
-                display.classList.add('error');
-            }
-            
-            updateDisplay();
-        }
-
-        function clearDisplay() {
-            currentValue = '0';
-            previousValue = null;
-            operator = null;
-            resetDisplay = false;
-            display.classList.remove('error');
-            updateDisplay();
-        }
-        
-        function backspace() {
-            if (currentValue === 'Error') {
-                clearDisplay();
-                return;
-            }
-            
-            if (currentValue.length === 1 || (currentValue.length === 2 && currentValue.startsWith('-'))) {
-                currentValue = '0';
-            } else {
-                currentValue = currentValue.slice(0, -1);
-            }
-            
-            updateDisplay();
-        }
-
-        function updateDisplay() {
-            // 限制显示长度，防止溢出
-            if (currentValue.length > 12) {
-                if (currentValue.includes('.')) {
-                    // 如果是小数，尝试缩短
-                    const parts = currentValue.split('.');
-                    if (parts[0].length > 8) {
-                        currentValue = parseFloat(currentValue).toExponential(6).toString();
-                    } else {
-                        const maxDecimal = 12 - parts[0].length - 1;
-                        currentValue = parseFloat(currentValue).toFixed(Math.min(maxDecimal, 8));
+                if (num === '.') {
+                    if (!this.currentValue.includes('.')) {
+                        this.currentValue += '.';
                     }
                 } else {
-                    // 如果是整数，转换为科学计数法
-                    currentValue = parseFloat(currentValue).toExponential(6).toString();
+                    if (this.currentValue === '0') {
+                        this.currentValue = num;
+                    } else {
+                        this.currentValue += num;
+                    }
                 }
-            }
+                
+                this.updateDisplay(); 
+            },
             
-            display.value = currentValue;
-        }
+            handleOperator(newOperator) {
+                if (this.currentValue === 'Error') return;
+                
+                if (newOperator === '+/-') {
+                    this.currentValue = (parseFloat(this.currentValue) * -1).toString();
+                    this.updateDisplay(); 
+                    return;
+                }
+                
+                if (newOperator === '%') {
+                    this.currentValue = (parseFloat(this.currentValue) / 100).toString();
+                    this.updateDisplay(); 
+                    return;
+                }
+                
+                if (this.resetDisplay && this.operator && this.operator !== '=') {
+                    this.operator = newOperator;
+                    this.updateHistory(); 
+                    return;
+                }
+                
+                if (this.operator && !this.resetDisplay) {
+                    this.calculate(false); 
+                }
+                
+                this.previousValue = this.currentValue; 
+                this.operator = newOperator;
+                this.resetDisplay = true;
+                this.updateHistory(); 
+            },
+            
+            calculate(update = true) {
+                if (!this.operator || this.currentValue === 'Error') return;
+                
+                const prev = parseFloat(this.previousValue); 
+                const current = parseFloat(this.currentValue); 
+                let result;
+                
+                try {
+                    let operationSymbol;
+                    switch(this.operator) {
+                        case '+':
+                            result = prev + current;
+                            operationSymbol = '+';
+                            break;
+                        case '-':
+                            result = prev - current;
+                            operationSymbol = '-';
+                            break;
+                        case '*':
+                            result = prev * current;
+                            operationSymbol = '×';
+                            break;
+                        case '/':
+                            if (current === 0) throw new Error("不能除以零");
+                            result = prev / current;
+                            operationSymbol = '÷';
+                            break;
+                        case '^':
+                            result = Math.pow(prev, current);
+                            operationSymbol = '^';
+                            break;
+                        case 'mod':
+                            result = prev % current;
+                            operationSymbol = 'mod';
+                            break;
+                        default: return;
+                    }
+                    
+                    // 处理浮点数精度问题
+                    result = this.roundResult(result);
+                    
+                    const fullOperation = `${this.roundForDisplay(prev)} ${operationSymbol} ${this.roundForDisplay(current)} = ${this.roundForDisplay(result)}`;
+                    this.lastOperation = fullOperation;
+                    this.currentValue = result.toString();
+                    
+                    if (update) {
+                        this.history.value = fullOperation;
+                        this.addHistory(fullOperation);
+                    }
+                } catch (error) {
+                    this.currentValue = 'Error';
+                    this.history.value = error.message;
+                    this.display.classList.add('error');
+                    return;
+                }
+                
+                this.operator = '=';
+                this.resetDisplay = true;
+                this.updateDisplay();
+            },
+            
+            roundResult(num) {
+                // 处理浮点数精度问题
+                if (Number.isInteger(num)) return num;
+                
+                // 对于小数，最多保留10位有效数字
+                const str = num.toString();
+                if (str.length > 10) {
+                    return parseFloat(num.toPrecision(10));
+                }
+                return num;
+            },
+            
+            roundForDisplay(num) {
+                // 对于显示，最多保留8位小数
+                const rounded = parseFloat(num.toFixed(8));
+                return rounded.toString().replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0+$/, '');
+            },
+            
+            backspace() {
+                if (this.currentValue === 'Error') {
+                    this.clearAll();
+                    return;
+                }
+                
+                if (this.currentValue.length === 1 || 
+                    (this.currentValue.length === 2 && this.currentValue.startsWith('-'))) {
+                    this.currentValue = '0';
+                } else {
+                    this.currentValue = this.currentValue.slice(0, -1);
+                }
+                
+                this.updateDisplay();
+            },
+            
+            clearAll() {
+                this.currentValue = '0';
+                this.previousValue = null;
+                this.operator = null;
+                this.resetDisplay = false;
+                this.display.classList.remove('error');
+                this.updateDisplay();
+                this.history.value = '';
+            },
+            
+            updateDisplay() {
+                this.display.value = this.currentValue;
+            },
+            
+            updateHistory() {
+                if (!this.operator || this.operator === '=') return;
+                
+                const operatorSymbol = this.operator === '*' ? '×' : 
+                                     this.operator === '/' ? '÷' : this.operator;
+                this.history.value = `${this.previousValue} ${operatorSymbol}`;
+            },
+            
+            memoryAdd() {
+                if (this.currentValue === 'Error') return;
+                this.memory += parseFloat(this.currentValue);
+                this.updateMemoryIndicator();
+            },
+            
+            memorySubtract() {
+                if (this.currentValue === 'Error') return;
+                this.memory -= parseFloat(this.currentValue);
+                this.updateMemoryIndicator();
+            },
+            
+            memoryRecall() {
+                if (this.memory !== 0) {
+                    this.currentValue = this.memory.toString();
+                    this.resetDisplay = true;
+                    this.updateDisplay();
+                }
+            },
+            
+            memoryClear() {
+                this.memory = 0;
+                this.updateMemoryIndicator();
+            },
+            
+            updateMemoryIndicator() {
+                if (this.memory !== 0) {
+                    this.memoryIndicator.style.display = 'block';
+                } else {
+                    this.memoryIndicator.style.display = 'none';
+                }
+            },
+            
+            scientificFunction(func) {
+                try {
+                    const num = parseFloat(this.currentValue);
+                    let result;
+                    
+                    switch(func) {
+                        case 'sqrt':
+                            if (num < 0) throw new Error("负数不能开平方");
+                            result = Math.sqrt(num);
+                            break;
+                        case 'square':
+                            result = Math.pow(num, 2);
+                            break;
+                        case 'cube':
+                            result = Math.pow(num, 3);
+                            break;
+                        case 'power':
+                            this.previousValue = this.currentValue;
+                            this.operator = '^';
+                            this.resetDisplay = true;
+                            this.updateHistory();
+                            return;
+                        case 'inv':
+                            if (num === 0) throw new Error("不能除以零");
+                            result = 1 / num;
+                            break;
+                        case 'sin':
+                            const angle = this.isRad ? num : num * Math.PI / 180;
+                            result = this.isHyp ? Math.sinh(angle) : Math.sin(angle);
+                            break;
+                        case 'cos':
+                            const angleCos = this.isRad ? num : num * Math.PI / 180;
+                            result = this.isHyp ? Math.cosh(angleCos) : Math.cos(angleCos);
+                            break;
+                        case 'tan':
+                            const angleTan = this.isRad ? num : num * Math.PI / 180;
+                            result = this.isHyp ? Math.tanh(angleTan) : Math.tan(angleTan);
+                            break;
+                        case 'asin':
+                            if (num < -1 || num > 1) throw new Error("超出定义域");
+                            result = Math.asin(num);
+                            if (!this.isRad) result *= 180 / Math.PI;
+                            break;
+                        case 'acos':
+                            if (num < -1 || num > 1) throw new Error("超出定义域");
+                            result = Math.acos(num);
+                            if (!this.isRad) result *= 180 / Math.PI;
+                            break;
+                        case 'atan':
+                            result = Math.atan(num);
+                            if (!this.isRad) result *= 180 / Math.PI;
+                            break;
+                        case 'log':
+                            if (num <= 0) throw new Error("对数参数必须为正数");
+                            result = Math.log10(num);
+                            break;
+                        case 'ln':
+                            if (num <= 0) throw new Error("对数参数必须为正数");
+                            result = Math.log(num);
+                            break;
+                        case 'exp':
+                            result = Math.exp(num);
+                            break;
+                        case 'tenpow':
+                            result = Math.pow(10, num);
+                            break;
+                        case 'fact':
+                            if (num < 0) throw new Error("负数没有阶乘");
+                            if (!Number.isInteger(num)) throw new Error("阶乘必须为整数");
+                            if (num > 170) throw new Error("数字太大"); // 超过170会超出JS能表示的范围
+                            result = this.factorial(num);
+                            break;
+                        case 'mod':
+                            this.previousValue = this.currentValue;
+                            this.operator = 'mod';
+                            this.resetDisplay = true;
+                            this.updateHistory();
+                            return;
+                        case 'hyp':
+                            this.isHyp = !this.isHyp;
+                            return;
+                        case 'rad':
+                            this.isRad = !this.isRad;
+                            return;
+                        default:
+                            return;
+                    }
+                    
+                    result = this.roundResult(result);
+                    const operation = this.getScientificOperationName(func) + '(' + this.currentValue + ')';
+                    this.currentValue = result.toString();
+                    this.history.value = operation + ' = ' + this.currentValue;
+                    this.addHistory(this.history.value);
+                    this.updateDisplay();
+                } catch (error) {
+                    this.currentValue = 'Error';
+                    this.history.value = error.message;
+                    this.display.classList.add('error');
+                }
+            },
+            
+            statFunction(func) {
+                try {
+                    const num = parseFloat(this.currentValue);
+                    let result;
+                    
+                    switch(func) {
+                        case 'data':
+                            this.stats.data.push(num);
+                            this.stats.sum += num;
+                            this.stats.sumSquares += num * num;
+                            this.updateStatIndicator();
+                            this.currentValue = '0';
+                            this.resetDisplay = true;
+                            break;
+                        case 'mean':
+                            if (this.stats.data.length === 0) throw new Error("无数据");
+                            result = this.stats.sum / this.stats.data.length;
+                            break;
+                        case 'sum':
+                            if (this.stats.data.length === 0) throw new Error("无数据");
+                            result = this.stats.sum;
+                            break;
+                        case 'sdev':
+                            if (this.stats.data.length < 2) throw new Error("需要至少2个数据点");
+                            const mean = this.stats.sum / this.stats.data.length;
+                            const variance = (this.stats.sumSquares - this.stats.sum * mean) / (this.stats.data.length - 1);
+                            result = Math.sqrt(variance);
+                            break;
+                        default:
+                            return;
+                    }
+                    
+                    if (result !== undefined) {
+                        result = this.roundResult(result);
+                        const operation = func.toUpperCase() + ' = ' + result;
+                        this.currentValue = result.toString();
+                        this.history.value = operation;
+                        this.addHistory(operation);
+                        this.updateDisplay();
+                    }
+                } catch (error) {
+                    this.currentValue = 'Error';
+                    this.history.value = error.message;
+                    this.display.classList.add('error');
+                }
+            },
+            
+            clearStats() {
+                this.stats = {
+                    data: [],
+                    sum: 0,
+                    sumSquares: 0
+                };
+                this.updateStatIndicator();
+            },
+            
+            updateStatIndicator() {
+                if (this.stats.data.length > 0) {
+                    this.statIndicator.textContent = `n=${this.stats.data.length}`;
+                    this.statIndicator.style.display = 'block';
+                } else {
+                    this.statIndicator.style.display = 'none';
+                }
+            },
+            
+            useConstant(constName) {
+                try {
+                    let value;
+                    switch(constName) {
+                        case 'pi':
+                            value = Math.PI;
+                            break;
+                        case 'e':
+                            value = Math.E;
+                            break;
+                        case 'phi':
+                            value = (1 + Math.sqrt(5)) / 2; // 黄金比例
+                            break;
+                        case 'rand':
+                            value = Math.random();
+                            break;
+                        default:
+                            return;
+                    }
+                    
+                    this.currentValue = value.toString();
+                    this.history.value = constName.toUpperCase() + ' = ' + this.currentValue;
+                    this.addHistory(this.history.value);
+                    this.updateDisplay();
+                } catch (error) {
+                    this.currentValue = 'Error';
+                    this.history.value = error.message;
+                    this.display.classList.add('error');
+                }
+            },
+            
+            factorial(n) {
+                if (n === 0 || n === 1) return 1;
+                let result = 1;
+                for (let i = 2; i <= n; i++) {
+                    result *= i;
+                }
+                return result;
+            },
+            
+            getScientificOperationName(func) {
+                const names = {
+                    'sqrt': '√',
+                    'square': '平方',
+                    'cube': '立方',
+                    'power': '幂',
+                    'inv': '倒数',
+                    'sin': this.isHyp ? 'sinh' : 'sin',
+                    'cos': this.isHyp ? 'cosh' : 'cos',
+                    'tan': this.isHyp ? 'tanh' : 'tan',
+                    'asin': 'sin⁻¹',
+                    'acos': 'cos⁻¹',
+                    'atan': 'tan⁻¹',
+                    'log': 'log₁₀',
+                    'ln': 'ln',
+                    'exp': 'e^',
+                    'tenpow': '10^',
+                    'fact': '阶乘',
+                    'mod': '模',
+                    'hyp': '双曲',
+                    'rad': this.isRad ? 'DEG' : 'RAD'
+                };
+                return names[func] || func;
+            }
+        };
+        
+        window.onload = function() {
+            calculator.init();
+        };
     </script>
 </body>
 </html>
